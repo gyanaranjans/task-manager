@@ -2,7 +2,15 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { Task, Status, Priority } from '@/types/tasks'
 
+type SortConfig = {
+    column: keyof Task
+    direction: 'asc' | 'desc'
+}
 
+type SearchConfig = {
+    column: keyof Task
+    query: string
+}
 const mockTasks: Task[] = [
     {
         id: 1,
@@ -43,16 +51,24 @@ interface TaskStore {
     tasks: Task[]
     selectedTaskId: number | null
     comment: string
-    searchQuery: string
-    sortOrder: 'asc' | 'desc'
+    sortConfig: SortConfig
+    searchConfig: SearchConfig
+    setSearchConfig: (config: SearchConfig) => void
+    setSortConfig: (config: SortConfig) => void
+    createTask: (task: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => void
     setSelectedTask: (id: number | null) => void
     setComment: (comment: string) => void
-    setSearchQuery: (query: string) => void
     toggleSortOrder: () => void
-    updateTaskStatus: (id: number, status: Status, comment: string) => void
     getNextTask: (currentId: number) => Task | null
     getPreviousTask: (currentId: number) => Task | null
-    createTask: (task: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => void
+    updateTaskStatus: (id: number, status: Status, comment: string) => void
+    pagination: {
+        page: number;
+        hasMore: boolean;
+    };
+    loadMore: () => void;
+    clearSearch: () => void;
+    clearSort: () => void;
 }
 
 export const useTaskStore = create(
@@ -61,32 +77,16 @@ export const useTaskStore = create(
             tasks: mockTasks,
             selectedTaskId: null,
             comment: '',
-            searchQuery: '',
-            sortOrder: 'desc',
-            setSelectedTask: (id) => set({ selectedTaskId: id }),
-            setComment: (comment) => set({ comment }),
-            setSearchQuery: (query) => set({ searchQuery: query }),
-            toggleSortOrder: () => set((state) => ({
-                sortOrder: state.sortOrder === 'asc' ? 'desc' : 'asc'
-            })),
-            updateTaskStatus: (id, status, comment) =>
-                set((state) => ({
-                    tasks: state.tasks.map((task) =>
-                        task.id === id
-                            ? { ...task, status, comment, updated_at: new Date().toISOString() }
-                            : task
-                    ),
-                })),
-            getNextTask: (currentId) => {
-                const tasks = get().tasks
-                const currentIndex = tasks.findIndex(task => task.id === currentId)
-                return tasks[currentIndex + 1] || null
+            sortConfig: {
+                column: 'created_at',
+                direction: 'desc'
             },
-            getPreviousTask: (currentId) => {
-                const tasks = get().tasks
-                const currentIndex = tasks.findIndex(task => task.id === currentId)
-                return tasks[currentIndex - 1] || null
+            searchConfig: {
+                column: 'name',
+                query: ''
             },
+            setSearchConfig: (config) => set({ searchConfig: config }),
+            setSortConfig: (config) => set({ sortConfig: config }),
             createTask: (taskData) => set((state) => ({
                 tasks: [...state.tasks, {
                     ...taskData,
@@ -95,8 +95,53 @@ export const useTaskStore = create(
                     updated_at: new Date().toISOString(),
                 }]
             })),
+            setSelectedTask: (id) => set({ selectedTaskId: id }),
+            setComment: (comment) => set({ comment }),
+            updateTaskStatus: (id, status, comment) => set((state) => ({
+                tasks: state.tasks.map((task) =>
+                    task.id === id
+                        ? { ...task, status, comment, updated_at: new Date().toISOString() }
+                        : task
+                ),
+            })),
+            getNextTask: (currentId: number) => {
+                const tasks = get().tasks;
+                const currentIndex = tasks.findIndex(task => task.id === currentId);
+                return tasks[currentIndex + 1] || null;
+            },
+            getPreviousTask: (currentId: number) => {
+                const tasks = get().tasks;
+                const currentIndex = tasks.findIndex(task => task.id === currentId);
+                return tasks[currentIndex - 1] || null;
+            },
+            toggleSortOrder: () => set((state) => ({
+                sortConfig: {
+                    ...state.sortConfig,
+                    direction: state.sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                }
+            })),
+            pagination: {
+                page: 1,
+                hasMore: true
+            },
+            loadMore: () => set((state) => ({
+                pagination: {
+                    page: state.pagination.page + 1,
+                    hasMore: state.tasks.length > (state.pagination.page + 1) * 10
+                }
+            })),
+            clearSearch: () => set({
+                searchConfig: {
+                    column: 'name',
+                    query: ''
+                }
+            }),
+            clearSort: () => set({
+                sortConfig: { column: 'created_at', direction: 'desc' }
+            })
         }),
         {
             name: 'task-storage',
         }
-    ))
+    )
+)

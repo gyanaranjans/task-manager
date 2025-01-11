@@ -1,17 +1,50 @@
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import { useTaskStore } from "@/store/task-store";
+import { Task } from "@/types/tasks";
+
+const SEARCHABLE_COLUMNS: { label: string; value: keyof Task }[] = [
+  { label: "Name", value: "name" },
+  { label: "Priority", value: "priority" },
+  { label: "Assignee", value: "assignee" },
+  { label: "Labels", value: "labels" },
+];
 
 export function SearchBar() {
-  const { searchQuery, setSearchQuery } = useTaskStore();
+  const { searchConfig, setSearchConfig } = useTaskStore();
+
   return (
-    <div className="relative">
-      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="flex items-center gap-2">
+      <Select
+        value={searchConfig.column}
+        onValueChange={(value: keyof Task) =>
+          setSearchConfig({ ...searchConfig, column: value })
+        }
+      >
+        <SelectTrigger className="w-[150px]">
+          <SelectValue placeholder="Select column" />
+        </SelectTrigger>
+        <SelectContent>
+          {SEARCHABLE_COLUMNS.map((column) => (
+            <SelectItem key={column.value} value={column.value}>
+              {column.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <Input
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search tasks..."
-        className="pl-8 w-[300px]"
+        className="w-[200px]"
+        placeholder={`Search by ${searchConfig.column}...`}
+        value={searchConfig.query}
+        onChange={(e) =>
+          setSearchConfig({ ...searchConfig, query: e.target.value })
+        }
       />
     </div>
   );

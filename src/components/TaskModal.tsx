@@ -66,78 +66,103 @@ export function TaskModal() {
 
   return (
     <Dialog open={!!selectedTaskId} onOpenChange={() => setSelectedTask(null)}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-4">
-            <span>#{task.id}</span>
-            <span className="flex-1">{task.name}</span>
-            <Badge>{task.status}</Badge>
-          </DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader className="space-y-4">
+          <div className="flex items-center justify-between pr-8">
+            <DialogTitle className="text-xl font-semibold">
+              Task #{task.id}
+            </DialogTitle>
+            <Badge
+              className="px-2 py-0.5 text-xs"
+              variant={
+                task.status === "OPEN"
+                  ? "default"
+                  : task.status === "IN_PROGRESS"
+                  ? "secondary"
+                  : "outline"
+              }
+            >
+              {task.status}
+            </Badge>
+          </div>
+          <h2 className="text-lg font-medium">{task.name}</h2>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2">
-              <Badge
-                variant={task.priority === "HIGH" ? "destructive" : "default"}
-              >
-                {task.priority}
+        <div className="space-y-6 py-4">
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant={task.priority === "HIGH" ? "destructive" : "default"}
+            >
+              {task.priority}
+            </Badge>
+            {task.labels.map((label) => (
+              <Badge key={label} variant="outline">
+                {label}
               </Badge>
-              {task.labels.map((label) => (
-                <Badge key={label} variant="outline">
-                  {label}
-                </Badge>
-              ))}
+            ))}
+          </div>
+
+          <div className="grid gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Assignee:</span>
+              <span>{task.assignee}</span>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Assigned to {task.assignee}
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Due Date:</span>
+              <span>{format(new Date(task.due_date), "PPP")}</span>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Due {format(new Date(task.due_date), "PPP")}
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Created:</span>
+              <span>{format(new Date(task.created_at), "PPP")}</span>
             </div>
           </div>
 
           {task.comment && (
-            <div className="rounded-md bg-muted p-4">
+            <div className="rounded-lg bg-muted/50 p-4 space-y-2">
               <p className="text-sm">{task.comment}</p>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-muted-foreground">
                 Last updated: {format(new Date(task.updated_at), "PPP")}
               </p>
             </div>
           )}
 
-          <Textarea
-            placeholder="Add a comment before changing status..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-          />
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Add a comment before changing status..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="min-h-[100px] resize-none"
+            />
 
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-muted-foreground">
-              Use arrow keys to navigate between tasks
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => handleStatusChange("OPEN")}
-                disabled={!comment.trim()}
-              >
-                Set Open (1)
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => handleStatusChange("IN_PROGRESS")}
-                disabled={!comment.trim()}
-              >
-                Set In Progress (2)
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => handleStatusChange("CLOSED")}
-                disabled={!comment.trim()}
-              >
-                Set Closed (3)
-              </Button>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Use arrow keys (←/→) to navigate between tasks
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant={task.status === "OPEN" ? "default" : "secondary"}
+                  onClick={() => handleStatusChange("OPEN")}
+                  disabled={!comment.trim()}
+                >
+                  Open (1)
+                </Button>
+                <Button
+                  variant={
+                    task.status === "IN_PROGRESS" ? "default" : "secondary"
+                  }
+                  onClick={() => handleStatusChange("IN_PROGRESS")}
+                  disabled={!comment.trim()}
+                >
+                  In Progress (2)
+                </Button>
+                <Button
+                  variant={task.status === "CLOSED" ? "default" : "secondary"}
+                  onClick={() => handleStatusChange("CLOSED")}
+                  disabled={!comment.trim()}
+                >
+                  Closed (3)
+                </Button>
+              </div>
             </div>
           </div>
         </div>

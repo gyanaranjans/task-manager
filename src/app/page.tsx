@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskModal } from "@/components/TaskModal";
 import { NewTaskModal } from "@/components/NewTaskModal";
 import { useTaskStore } from "@/store/task-store";
-
+import { ModeToggle } from "@/components/ThemeToggle";
 export default function Home() {
   const { tasks } = useTaskStore();
   const counts = {
@@ -18,10 +18,11 @@ export default function Home() {
     <div className="container mx-auto py-6">
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Task Manager</h1>
-        <NewTaskModal />
         <div className="flex space-x-4">
           <SearchBar />
           <SortToggle />
+          <ModeToggle />
+          <NewTaskModal />
         </div>
       </header>
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Task, Status, Priority } from '@/types/tasks'
+import { Task, Status, mockTasks } from '@/types/tasks'
 
 type SortConfig = {
     column: keyof Task
@@ -11,41 +11,7 @@ type SearchConfig = {
     column: keyof Task
     query: string
 }
-const mockTasks: Task[] = [
-    {
-        id: 1,
-        name: "Implement search feature",
-        labels: ["frontend", "urgent"],
-        status: "OPEN",
-        priority: "HIGH",
-        assignee: "john@example.com",
-        due_date: "2024-03-30T00:00:00Z",
-        created_at: "2024-03-15T00:00:00Z",
-        updated_at: "2024-03-15T00:00:00Z",
-    },
-    {
-        id: 2,
-        name: "Fix navigation bug",
-        labels: ["bug", "frontend"],
-        status: "IN_PROGRESS",
-        priority: "MEDIUM",
-        assignee: "jane@example.com",
-        due_date: "2024-03-25T00:00:00Z",
-        created_at: "2024-03-14T00:00:00Z",
-        updated_at: "2024-03-14T00:00:00Z",
-    },
-    {
-        id: 3,
-        name: "Deploy to production",
-        labels: ["devops"],
-        status: "CLOSED",
-        priority: "HIGH",
-        assignee: "devops@example.com",
-        due_date: "2024-03-20T00:00:00Z",
-        created_at: "2024-03-10T00:00:00Z",
-        updated_at: "2024-03-10T00:00:00Z",
-    }
-]
+
 
 interface TaskStore {
     tasks: Task[]
@@ -63,10 +29,12 @@ interface TaskStore {
     getPreviousTask: (currentId: number) => Task | null
     updateTaskStatus: (id: number, status: Status, comment: string) => void
     pagination: {
-        page: number;
-        hasMore: boolean;
+        currentPage: number;
+        pageSize: number;
+        totalPages: number;
     };
-    loadMore: () => void;
+    setCurrentPage: (page: number) => void;
+
     clearSearch: () => void;
     clearSort: () => void;
 }
@@ -121,13 +89,14 @@ export const useTaskStore = create(
                 }
             })),
             pagination: {
-                page: 1,
-                hasMore: true
+                currentPage: 1,
+                pageSize: 10,
+                totalPages: Math.ceil(mockTasks.length / 10)
             },
-            loadMore: () => set((state) => ({
+            setCurrentPage: (page) => set((state) => ({
                 pagination: {
-                    page: state.pagination.page + 1,
-                    hasMore: state.tasks.length > (state.pagination.page + 1) * 10
+                    ...state.pagination,
+                    currentPage: page
                 }
             })),
             clearSearch: () => set({
@@ -142,6 +111,8 @@ export const useTaskStore = create(
         }),
         {
             name: 'task-storage',
+            version: 1,
+            skipHydration: false
         }
     )
 )

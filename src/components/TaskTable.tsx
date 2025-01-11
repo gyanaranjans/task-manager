@@ -18,6 +18,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ArrowUpDown } from "lucide-react";
 
@@ -43,7 +51,8 @@ export function TaskTable({ status }: TaskTableProps) {
     sortConfig,
     setSortConfig,
     setSearchConfig,
-    loadMore,
+    pagination,
+    setCurrentPage,
   } = useTaskStore();
 
   const sortData = (a: Task, b: Task) => {
@@ -91,6 +100,11 @@ export function TaskTable({ status }: TaskTableProps) {
           : "asc",
     });
   };
+  const paginatedTasks = filteredTasks.slice(
+    (pagination.currentPage - 1) * pagination.pageSize,
+    pagination.currentPage * pagination.pageSize
+  );
+  const totalPages = Math.ceil(filteredTasks.length / pagination.pageSize);
 
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
@@ -116,22 +130,22 @@ export function TaskTable({ status }: TaskTableProps) {
   // Add intersection observer for infinite scroll
   const observerTarget = useRef(null);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
+  // useEffect(() => {
+  //   const observer = new IntersectionObserver(
+  //     (entries) => {
+  //       // if (entries[0].isIntersecting) {
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
+  //       // }
+  //     },
+  //     { threshold: 0.1 }
+  //   );
 
-    return () => observer.disconnect();
-  }, [loadMore]);
+  //   if (observerTarget.current) {
+  //     observer.observe(observerTarget.current);
+  //   }
+
+  //   return () => observer.disconnect();
+  // }, [loadMore]);
   return (
     <div className="rounded-md border">
       <Table>
@@ -168,7 +182,7 @@ export function TaskTable({ status }: TaskTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredTasks.map((task, index) => (
+          {paginatedTasks.map((task, index) => (
             <TableRow
               key={task.id}
               className={cn(
@@ -213,6 +227,52 @@ export function TaskTable({ status }: TaskTableProps) {
           ))}
         </TableBody>
       </Table>
+
+      <div className="flex items-center justify-end py-4 px-2 border-t">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() =>
+                  setCurrentPage(Math.max(1, pagination.currentPage - 1))
+                }
+                className={cn(
+                  "cursor-pointer",
+                  pagination.currentPage <= 1 &&
+                    "pointer-events-none opacity-50"
+                )}
+              />
+            </PaginationItem>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  className="cursor-pointer"
+                  onClick={() => setCurrentPage(page)}
+                  isActive={pagination.currentPage === page}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext
+                onClick={() =>
+                  setCurrentPage(
+                    Math.min(totalPages, pagination.currentPage + 1)
+                  )
+                }
+                className={cn(
+                  "cursor-pointer",
+                  pagination.currentPage >= totalPages &&
+                    "pointer-events-none opacity-50"
+                )}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
 }

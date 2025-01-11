@@ -41,13 +41,13 @@ export function TaskModal() {
           if (prevTask) setSelectedTask(prevTask.id);
           break;
         case "1":
-          handleStatusChange("OPEN");
+          if (comment.trim()) handleStatusChange("OPEN");
           break;
         case "2":
-          handleStatusChange("IN_PROGRESS");
+          if (comment.trim()) handleStatusChange("IN_PROGRESS");
           break;
         case "3":
-          handleStatusChange("CLOSED");
+          if (comment.trim()) handleStatusChange("CLOSED");
           break;
       }
     };
@@ -131,7 +131,7 @@ export function TaskModal() {
               placeholder="Add a comment before changing status..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="min-h-[100px] resize-none"
+              className="resize-none"
             />
 
             <div className="flex items-center justify-between">

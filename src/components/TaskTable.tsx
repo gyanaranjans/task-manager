@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -127,25 +127,6 @@ export function TaskTable({ status }: TaskTableProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedIndex, filteredTasks]);
 
-  // Add intersection observer for infinite scroll
-  const observerTarget = useRef(null);
-
-  // useEffect(() => {
-  //   const observer = new IntersectionObserver(
-  //     (entries) => {
-  //       // if (entries[0].isIntersecting) {
-
-  //       // }
-  //     },
-  //     { threshold: 0.1 }
-  //   );
-
-  //   if (observerTarget.current) {
-  //     observer.observe(observerTarget.current);
-  //   }
-
-  //   return () => observer.disconnect();
-  // }, [loadMore]);
   return (
     <div className="rounded-md border">
       <Table>
